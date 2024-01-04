@@ -1,6 +1,7 @@
 from collections import defaultdict
 from functools import cached_property
 from matplotlib import pyplot as plt
+from const import EDGE_COLORMAP
 from dtos import Graph
 
 class Flow:
@@ -30,7 +31,13 @@ class Flow:
         return sum([load * self.graph.get_latency(edge)(load) for edge, load in self.get_loads().items()])
 
     def draw(self) -> 'Flow':
-        self.graph.draw(edge_labels=self.get_loads())
+        loads = self.get_loads()
+        max_load = max(loads.values())
+        self.graph.draw(
+            edge_labels=loads, 
+            edge_color={edge: EDGE_COLORMAP(1 - loads[edge] / max_load) for edge in loads},
+            width={edge: 1+3*(loads[edge] / max_load) for edge in loads}
+        )
         plt.legend(handles=[], title=f"Total cost: {self.cost}", loc='lower center')
         return self
 
