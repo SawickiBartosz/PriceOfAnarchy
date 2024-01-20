@@ -1,6 +1,6 @@
 from collections import defaultdict
 from functools import cached_property
-from typing import Callable
+from typing import Callable, Optional
 from matplotlib import pyplot as plt
 import numpy as np
 from const import EDGE_COLORMAP
@@ -70,8 +70,11 @@ class Flow:
         return f"Flow(cost: {self.cost}, {self.paths})"
     
     @classmethod
-    def bump(cls, flow: 'Flow', path: tuple[str, ...], amount: float) -> 'Flow':
-        paths = {**flow.paths, **{path: flow.paths[path] + amount}}
+    def bump(cls, flow: 'Flow', path: tuple[str, ...], amount: float, *, decrease: Optional[tuple[str, ...]] = None) -> 'Flow':
+        if decrease == path:
+            return flow
+        
+        paths = {**flow.paths, **{path: flow.paths[path] + amount}, **({decrease: flow.paths[decrease] - amount} if decrease is not None else {})}
         return cls(flow.graph, paths)
     
     @classmethod
