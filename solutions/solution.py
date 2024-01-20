@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from dtos import Flow, Graph
 from solutions.targets import Target
-from .core import Core
+from visualization import Listener, BlankListener
+from common.core import Core
 
 
 class Solution(ABC):
@@ -9,5 +10,5 @@ class Solution(ABC):
         self.graph = graph
     
     @abstractmethod
-    def solve(self, core: Core, target: Target) -> Flow:
+    def solve(self, core: Core, target: Target, *, attach: Listener = BlankListener()) -> Flow:
         pass
