@@ -38,3 +38,7 @@ class Graph:
 
     def possible_paths(self) -> list[list[str]]:
         return [tuple(path) for path in nx.all_simple_paths(self.G, self.start, self.end)]
+    
+    @classmethod
+    def split_path(cls, path: tuple[str, ...]) -> list[tuple[str, str]]:
+        return [tuple(sorted((path[i], path[i+1]))) for i in range(len(path)-1)]

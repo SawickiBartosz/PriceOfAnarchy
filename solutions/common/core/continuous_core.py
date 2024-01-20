@@ -8,5 +8,5 @@ class ContinuousCore(Core):
         super().__init__(total=total, precision=0)
 
         
-    def correct_weights(self, weights: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def correct_values(self, weights: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         return weights

@@ -1,12 +1,23 @@
 from collections import defaultdict
 from functools import cached_property
+from typing import Callable
 from matplotlib import pyplot as plt
+import numpy as np
 from const import EDGE_COLORMAP
 from dtos import Graph
 
+EMPTY_FLOW = object()
+
 class Flow:
     def __init__(self, graph: Graph, paths: dict[tuple[str, ...], float]):
-        possible_paths = graph.possible_paths()
+        self.graph = graph
+        if paths is EMPTY_FLOW:
+            self.paths = {path: 0 for path in self.graph.possible_paths()}
+        else:
+            self.paths = self._validate_paths(paths)
+
+    def _validate_paths(self, paths: dict[tuple[str, ...], float]) -> dict[tuple[str, ...], float]:
+        possible_paths = self.graph.possible_paths()
         for path in paths:
             if path not in possible_paths:
                 raise ValueError(f"Path {path} is not a possible path in the graph.")
@@ -23,20 +34,23 @@ class Flow:
         max_load = max(paths.values())
         if max_load == 0:
             print(f"Warning: flow is empty, all paths have 0 load.")
-
-        self.graph = graph
-        self.paths = paths
+        
+        return paths
 
     def get_loads(self) -> dict[tuple[str, str], float]:
         loads = defaultdict(int)
         for path, flow in self.paths.items():
-            for edge in zip(path[:-1], path[1:]):
-                loads[tuple(sorted(edge))] += flow
+            for edge in Graph.split_path(path):
+                loads[edge] += flow
         return dict(loads)
     
     @cached_property
     def cost(self) -> float:
         return sum([load * self.graph.get_latency(edge)(load) for edge, load in self.get_loads().items()])
+    
+    def path_cost(self, path: tuple[str, ...]) -> float:
+        edges = Graph.split_path(path)
+        return sum([self.graph.get_latency(edge)(load) for edge, load in self.get_loads().items() if edge in edges])
 
     def draw(self) -> 'Flow':
         loads = self.get_loads()
@@ -54,3 +68,14 @@ class Flow:
 
     def __repr__(self) -> str:
         return f"Flow(cost: {self.cost}, {self.paths})"
+    
+    @classmethod
+    def bump(cls, flow: 'Flow', path: tuple[str, ...], amount: float) -> 'Flow':
+        paths = {**flow.paths, **{path: flow.paths[path] + amount}}
+        return cls(flow.graph, paths)
+    
+    @classmethod
+    def correct_flow(cls, flow: 'Flow', func: Callable) -> 'Flow':
+        values = func(np.array(list(flow.paths.values())))
+        paths = {path: values[i] for i, path in enumerate(flow.paths)}
+        return cls(flow.graph, paths)
