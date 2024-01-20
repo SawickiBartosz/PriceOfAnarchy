@@ -37,4 +37,4 @@ class Graph:
         return self.G.get_edge_data(*edge)['cost']
 
     def possible_paths(self) -> list[list[str]]:
-        return list(nx.all_simple_paths(self.G, self.start, self.end))
+        return [tuple(path) for path in nx.all_simple_paths(self.G, self.start, self.end)]
