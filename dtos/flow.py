@@ -89,6 +89,7 @@ class Flow:
             nx.draw_networkx_edge_labels(label_graph, pos=extra_pos, edge_labels=nx.get_edge_attributes(label_graph, 'flow'), ax=ax)
 
         (ax or plt).legend(handles=[], title=f"Total cost: {self.cost:.5g}", loc='lower center', bbox_to_anchor=(0.5, -0.07))
+        fig = plt.gcf()
         if ax is None:
             plt.show()
         return self
@@ -105,6 +106,11 @@ class Flow:
             return flow
         
         paths = {**flow.paths, **{path: flow.paths[path] + amount}, **({decrease: flow.paths[decrease] - amount} if decrease is not None else {})}
+        return cls(flow.graph, paths)
+    
+    @classmethod
+    def dump(cls, flow: 'Flow', path: tuple[str, ...], amount: float) -> 'Flow':
+        paths = {**flow.paths, **{path: flow.paths[path] - amount}}
         return cls(flow.graph, paths)
     
     @classmethod

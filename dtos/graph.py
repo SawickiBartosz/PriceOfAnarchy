@@ -1,7 +1,7 @@
 from typing import Optional, TypeVar
 import networkx as nx
 from const import FLAG_COLOR, NODE_COLOR
-from dtos.latency_functions import LatencyFunction
+from dtos.latency_functions import LatencyFunction, q
 import matplotlib
 
 T = TypeVar('T')
@@ -13,8 +13,28 @@ class Graph:
         self.end = end
 
         self.G = nx.Graph()
-        self.G.add_nodes_from(sorted({e[0] for e in edges} | {e[1] for e in edges}))
-        self.G.add_edges_from([(e[0], e[1], {'cost': e[2]}) for e in edges])
+        nodes = set()
+        repetitive = set()
+        for e in edges:
+            curr = (e[0],e[1]) if e[0]<e[1] else (e[1],e[0])
+            if curr in nodes:
+                repetitive.add(f"{curr[0]}'")
+            else:
+                nodes.add(curr)
+        self.G.add_nodes_from(sorted({e[0] for e in edges} | {e[1] for e in edges} | repetitive))
+        for edge in edges:
+            self.add_edge_with_artificial_nodes(edge)
+         
+    def add_edge_with_artificial_nodes(self, edge: tuple[str, str, LatencyFunction]):
+        source, target, latency_function = edge
+        if source>target:
+            source,target = target,source 
+        if self.G.has_edge(source, target):
+            artificial_node = f"{source}'"
+            self.G.add_edge(source, artificial_node, cost=latency_function)
+            self.G.add_edge(artificial_node, target, cost=q(0, 0, 0))
+        else:
+            self.G.add_edge(source, target, cost=latency_function)
 
     def draw(self, *, edge_labels: Optional[EdgeDict[str]] = None, edge_color: Optional[EdgeDict[str]] = None, width: Optional[EdgeDict[float]] = None, 
              draw_edges: bool = True, pos: Optional[dict[str, tuple[float, float]]] = None, ax: Optional[matplotlib.axes.Axes] = None) -> 'Graph':
