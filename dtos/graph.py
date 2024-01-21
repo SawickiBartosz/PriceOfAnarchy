@@ -2,6 +2,7 @@ from typing import Optional, TypeVar
 import networkx as nx
 from const import FLAG_COLOR, NODE_COLOR
 from dtos.latency_functions import LatencyFunction, q
+import matplotlib
 
 T = TypeVar('T')
 EdgeDict = dict[tuple[str, str], T]
@@ -36,7 +37,7 @@ class Graph:
             self.G.add_edge(source, target, cost=latency_function)
 
     def draw(self, *, edge_labels: Optional[EdgeDict[str]] = None, edge_color: Optional[EdgeDict[str]] = None, width: Optional[EdgeDict[float]] = None, 
-             draw_edges: bool = True, pos: Optional[dict[str, tuple[float, float]]] = None) -> 'Graph':
+             draw_edges: bool = True, pos: Optional[dict[str, tuple[float, float]]] = None, ax: Optional[matplotlib.axes.Axes] = None) -> 'Graph':
         def dict_to_list(d: Optional[EdgeDict[any]]) -> list[any]:
             return [d[k] for k in self.G.edges()] if d is not None else None
         
@@ -44,14 +45,15 @@ class Graph:
         nx.draw(
             self.G, with_labels=True, pos=pos, 
             node_color=[FLAG_COLOR if n in [self.start, self.end] else NODE_COLOR for n in self.G.nodes],
-            edge_color=dict_to_list(edge_color), width=(dict_to_list(width) if draw_edges else 0)
+            edge_color=dict_to_list(edge_color), width=(dict_to_list(width) if draw_edges else 0),
+            ax=ax
         )
 
         if draw_edges:
             labels = nx.get_edge_attributes(self.G, 'cost')
             if edge_labels is not None:
                 labels = {k: f"{v}\n{edge_labels[k]}" for k, v in labels.items()}
-            nx.draw_networkx_edge_labels(self.G, pos=pos, edge_labels=labels)
+            nx.draw_networkx_edge_labels(self.G, pos=pos, edge_labels=labels, ax=ax)
 
         return self
     

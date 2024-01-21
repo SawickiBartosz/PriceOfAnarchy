@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 from const import EDGE_COLORMAP
 from dtos import Graph
+import matplotlib
 
 EMPTY_FLOW = object()
 
@@ -60,7 +61,7 @@ class Flow:
         edges = Graph.split_path(path)
         return sum([self.graph.get_latency(edge)(load) for edge, load in self.get_loads().items() if edge in edges])
 
-    def draw(self, *, simple: bool = False) -> 'Flow':
+    def draw(self, *, simple: bool = False, ax: Optional[matplotlib.axes.Axes] = None) -> 'Flow':
         loads = self.get_loads()
         max_load = max(loads.values())
         if max_load == 0:
@@ -68,6 +69,7 @@ class Flow:
 
         pos = nx.spring_layout(self.graph.G, seed=42)
         self.graph.draw(
+            ax=ax,
             pos=pos,
             edge_labels=({k: f"{v:.3g}" for k, v in loads.items()} if simple else None), 
             edge_color={edge: EDGE_COLORMAP(1 - loads[edge] / max_load) for edge in loads},
@@ -81,16 +83,20 @@ class Flow:
             for edge, flow in directed_loads.items():
                 if flow == 0:
                     continue
-                extra_pos[str(edge)] = (pos[edge[0]]*2.5+pos[edge[1]])/3.5
+                extra_pos[str(edge)] = (pos[edge[0]]*2+pos[edge[1]])/3
                 label_graph.add_edge(edge[0], str(edge), flow=f"{flow:.3g}")
-            nx.draw(label_graph, pos=extra_pos, node_size=0, arrowsize=20)
-            nx.draw_networkx_edge_labels(label_graph, pos=extra_pos, edge_labels=nx.get_edge_attributes(label_graph, 'flow'))
+            nx.draw(label_graph, pos=extra_pos, node_size=0, arrowsize=20, ax=ax)
+            nx.draw_networkx_edge_labels(label_graph, pos=extra_pos, edge_labels=nx.get_edge_attributes(label_graph, 'flow'), ax=ax)
 
-        plt.legend(handles=[], title=f"Total cost: {self.cost:.5g}", loc='lower center')
+        (ax or plt).legend(handles=[], title=f"Total cost: {self.cost:.5g}", loc='lower center', bbox_to_anchor=(0.5, -0.07))
         fig = plt.gcf()
-        plt.show()
-        return fig
-    
+        if ax is None:
+            plt.show()
+        return self
+
+    def to_numpy(self) -> np.ndarray:
+        return np.array(list(self.paths.values()))
+
     def __repr__(self) -> str:
         return f"Flow(cost: {self.cost}, {self.paths})"
     
