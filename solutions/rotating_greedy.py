@@ -11,6 +11,8 @@ class RotatingGreedySolution(Solution):
         self.rotations = rotations
 
     def solve(self, core: Core, target: Target, attach: Listener = BlankListener()) -> Flow:
+        if core.precision == 0:
+            raise ValueError("Greedy solution cannot be apllied to continuous core, consider discretizing it")
         attach.on_start(self.graph, core)
         flow = Flow(self.graph, EMPTY_FLOW)
         attach.on_iteration(flow, None)
