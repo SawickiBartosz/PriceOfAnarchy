@@ -90,6 +90,9 @@ class Flow:
         plt.show()
         return self
 
+    def to_numpy(self) -> np.ndarray:
+        return np.array(list(self.paths.values()))
+
     def __repr__(self) -> str:
         return f"Flow(cost: {self.cost}, {self.paths})"
     

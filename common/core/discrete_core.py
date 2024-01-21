@@ -13,3 +13,6 @@ class DiscreteCore(Core):
 
     def correct_values(self, weights: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         return np.array(iteround.saferound(weights/self.precision, 0))*self.precision
+    
+    def correct_value(self, weight: float) -> float:
+        return round(weight/self.precision)*self.precision

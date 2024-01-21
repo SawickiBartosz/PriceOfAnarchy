@@ -15,3 +15,7 @@ class Core(ABC):
     @abstractmethod
     def correct_values(self, weights: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         pass
+
+    @abstractmethod
+    def correct_value(self, weight: float) -> float:
+        pass
