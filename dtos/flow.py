@@ -3,6 +3,7 @@ from functools import cached_property
 from typing import Callable, Optional
 from matplotlib import pyplot as plt
 import numpy as np
+import networkx as nx
 from const import EDGE_COLORMAP
 from dtos import Graph
 
@@ -43,6 +44,13 @@ class Flow:
             for edge in Graph.split_path(path):
                 loads[edge] += flow
         return dict(loads)
+
+    def get_directed_loads(self) -> dict[tuple[str, str], float]:
+        loads = defaultdict(int)
+        for path, flow in self.paths.items():
+            for edge in zip(path[:-1], path[1:]):
+                loads[edge] += flow
+        return dict(loads)
     
     @cached_property
     def cost(self) -> float:
@@ -52,16 +60,32 @@ class Flow:
         edges = Graph.split_path(path)
         return sum([self.graph.get_latency(edge)(load) for edge, load in self.get_loads().items() if edge in edges])
 
-    def draw(self) -> 'Flow':
+    def draw(self, *, simple: bool = False) -> 'Flow':
         loads = self.get_loads()
         max_load = max(loads.values())
         if max_load == 0:
             max_load = 1
+
+        pos = nx.spring_layout(self.graph.G, seed=42)
         self.graph.draw(
-            edge_labels={k: f"{v:.3g}" for k, v in loads.items()}, 
+            pos=pos,
+            edge_labels=({k: f"{v:.3g}" for k, v in loads.items()} if simple else None), 
             edge_color={edge: EDGE_COLORMAP(1 - loads[edge] / max_load) for edge in loads},
             width={edge: 1+3*(loads[edge] / max_load) for edge in loads}
         )
+            
+        if not simple:
+            directed_loads = self.get_directed_loads()
+            label_graph = nx.DiGraph()
+            extra_pos = {**pos}
+            for edge, flow in directed_loads.items():
+                if flow == 0:
+                    continue
+                extra_pos[str(edge)] = (pos[edge[0]]*2.5+pos[edge[1]])/3.5
+                label_graph.add_edge(edge[0], str(edge), flow=f"{flow:.3g}")
+            nx.draw(label_graph, pos=extra_pos, node_size=0, arrowsize=20)
+            nx.draw_networkx_edge_labels(label_graph, pos=extra_pos, edge_labels=nx.get_edge_attributes(label_graph, 'flow'))
+
         plt.legend(handles=[], title=f"Total cost: {self.cost:.5g}", loc='lower center')
         plt.show()
         return self
