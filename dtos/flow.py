@@ -87,9 +87,10 @@ class Flow:
             nx.draw_networkx_edge_labels(label_graph, pos=extra_pos, edge_labels=nx.get_edge_attributes(label_graph, 'flow'))
 
         plt.legend(handles=[], title=f"Total cost: {self.cost:.5g}", loc='lower center')
+        fig = plt.gcf()
         plt.show()
-        return self
-
+        return fig
+    
     def __repr__(self) -> str:
         return f"Flow(cost: {self.cost}, {self.paths})"
     
