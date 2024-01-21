@@ -92,7 +92,7 @@ class Flow:
         fig = plt.gcf()
         if ax is None:
             plt.show()
-        return self
+        return fig
 
     def to_numpy(self) -> np.ndarray:
         return np.array(list(self.paths.values()))
