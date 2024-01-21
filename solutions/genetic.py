@@ -1,9 +1,10 @@
+from typing import Optional
 from dtos import Flow, Graph
 from common import Core
 from .solution import Solution
 from .randomized import RandomizedSolution
 from .targets import Target
-from visualization import Listener, BlankListener, Change
+from visualization import Listener, BlankListener
 import pygad
 import numpy as np
 
@@ -15,7 +16,7 @@ class GeneticSolution(Solution):
         self.sol_per_pop = sol_per_pop
         self.mutation_intensity = mutation_intensity
     
-    def solve(self, core: Core, target: Target, attach: Listener = BlankListener(), seed: int = None) -> Flow:
+    def solve(self, core: Core, target: Target, attach: Listener = BlankListener(), seed: Optional[int] = None) -> Flow:
         random = np.random.default_rng(seed)
         paths = self.graph.possible_paths()
 

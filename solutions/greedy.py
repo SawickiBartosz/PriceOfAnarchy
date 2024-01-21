@@ -1,3 +1,4 @@
+from typing import Optional
 from dtos import Flow, EMPTY_FLOW
 from common import Core
 from .solution import Solution
@@ -6,7 +7,7 @@ from visualization import Listener, BlankListener, Change
 
 
 class GreedySolution(Solution):
-    def solve(self, core: Core, target: Target, attach: Listener = BlankListener()) -> Flow:
+    def solve(self, core: Core, target: Target, attach: Listener = BlankListener(), seed: Optional[int] = None) -> Flow:
         if core.precision == 0:
             raise ValueError("Greedy solution cannot be apllied to continuous core, consider discretizing it")
         attach.on_start(self.graph, core)
