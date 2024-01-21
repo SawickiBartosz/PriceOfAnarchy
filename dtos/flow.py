@@ -78,6 +78,11 @@ class Flow:
         return cls(flow.graph, paths)
     
     @classmethod
+    def dump(cls, flow: 'Flow', path: tuple[str, ...], amount: float) -> 'Flow':
+        paths = {**flow.paths, **{path: flow.paths[path] - amount}}
+        return cls(flow.graph, paths)
+    
+    @classmethod
     def correct_flow(cls, flow: 'Flow', func: Callable) -> 'Flow':
         values = func(np.array(list(flow.paths.values())))
         paths = {path: values[i] for i, path in enumerate(flow.paths)}
