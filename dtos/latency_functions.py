@@ -1,4 +1,7 @@
 from typing import Callable
+import numpy as np
+from numpy.polynomial import Polynomial
+import re
 
 
 class LatencyFunction:
@@ -12,7 +15,18 @@ class LatencyFunction:
     def __repr__(self) -> str:
         return self.label
 
-class q(LatencyFunction):
+class poly(LatencyFunction):
+    def __init__(self, *coeffs):
+        np.polynomial.set_default_printstyle('ascii')
+        p = Polynomial(coeffs[::-1])
+        label = str(p)
+        label = re.sub(r'\+ 0.0 [^+]+', '', label)
+        label = re.sub(r'^0.0 \+ ', '', label)
+        label = re.sub(r'(^| )1.0+ x', 'x', label)
+        label = re.sub(r'\.0+($| )', '', label)
+        label = label.replace(' x', 'x').replace('**', '^')
+        super().__init__(label, p)
+        
+class q(poly):
     def __init__(self, a: int, b: int, c: int):
-        label = " + ".join([f"{v if v!=1 or l=='' else ''}{l}" for v, l in list(zip([a, b, c], ["x^2", "x", ""])) if v != 0])
-        super().__init__(label, lambda x: a * x ** 2 + b * x + c)
+        super().__init__(a, b, c)
