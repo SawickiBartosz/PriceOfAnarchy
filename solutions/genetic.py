@@ -37,11 +37,17 @@ class GeneticSolution(Solution):
                     idx_from = random.integers(0, offspring.shape[1])
                     idx_to = random.integers(0, offspring.shape[1])
                     if idx_from != idx_to:
-                        value = core.correct_value(offspring[idx][idx_from]*random.uniform(0, 1))
+                        value = core.correct_value(offspring[idx][idx_from]*min(1, random.uniform(0, 1.15)))
                         offspring[idx][idx_from] -= value
                         offspring[idx][idx_to] += value
             return offspring
+
+        def on_generation(ga_instance):
+            solution = ga_instance.best_solution()[0]
+            attach.on_iteration(Flow(self.graph, {path: solution[idx] for idx, path in enumerate(paths)}), None)
         
+        
+        attach.on_start(self.graph, core)
         ga_instance = pygad.GA(
             num_generations=self.num_generations,
             sol_per_pop=self.sol_per_pop,
@@ -52,8 +58,10 @@ class GeneticSolution(Solution):
             crossover_type=crossover_func,
             mutation_type=mutation_func if self.mutation_intensity > 0 else None,
             mutation_percent_genes=100,
-            random_seed=seed
+            random_seed=seed,
+            on_generation=on_generation
         )
         ga_instance.run()
         solution = core.correct_values(ga_instance.best_solution()[0])
+        attach.on_end()
         return Flow(self.graph, {path: solution[idx] for idx, path in enumerate(paths)})
