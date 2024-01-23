@@ -8,7 +8,7 @@ from typing import Optional
 import numpy as np
 
 class DynamicSolution(Solution):
-    def solve(self, core: Core, target: Target, starting_flow: Optional[Flow] = None, starting_p: Optional[Flow] = 0.5, iters: Optional[int] = 500, seed: int = 2137, attach: Listener = BlankListener()) -> Flow:
+    def solve(self, core: Core, target: Target, starting_flow: Optional[Flow] = None, starting_p: Optional[Flow] = 0.5, iters: Optional[int] = 3000, seed: int = 2137, attach: Listener = BlankListener()) -> Flow:
         np.random.seed(seed)
         attach.on_start(self.graph, core)
         if not starting_flow:
